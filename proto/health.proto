@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package FL.v1;
+
+option go_package = "github.com/mawi118/family_ledger_BACK/proto";
+
+message HealthResponse{
+  int32 code = 1;
+}
+message HealthRequest {}
+
+service Health {
+  rpc HealthCheck (HealthRequest) returns (HealthResponse );
+}
