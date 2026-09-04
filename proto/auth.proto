@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package FL.v1;
+
+option go_package = "github.com/mawi118/family_ledger_BACK/proto";
+
+message RegisterRequest  {
+  string email = 1;
+  string password = 2;
+}
+message RegisterResponse {
+  string  user_id = 1 ;
+}
+
+message EmailExistsRequest {
+  string email = 1;
+}
+message EmailExistsResponse {
+  bool exists = 1 ;
+}
+
+service Auth {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc EmailExists (EmailExistsRequest) returns (EmailExistsResponse);
+}

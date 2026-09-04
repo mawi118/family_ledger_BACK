@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: family_ledger
       POSTGRES_DB: family_ledger
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
