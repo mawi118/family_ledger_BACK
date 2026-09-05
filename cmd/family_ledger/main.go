@@ -4,11 +4,13 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	"github.com/mawi118/family_ledger_BACK/internal/auth"
 	"github.com/mawi118/family_ledger_BACK/internal/config"
 	"github.com/mawi118/family_ledger_BACK/internal/db"
 	"github.com/mawi118/family_ledger_BACK/internal/health"
+	"github.com/mawi118/family_ledger_BACK/internal/interceptor"
 	"github.com/mawi118/family_ledger_BACK/proto"
 	"google.golang.org/grpc"
 )
@@ -34,10 +36,14 @@ func main() {
 	}
 
 	//создали сервер gRPC
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptor.ValidationInterceptor))
 
 	//ниже регестрируются сервера
-	proto.RegisterAuthServer(grpcServer, auth.NewServer(pool))
+	proto.RegisterAuthServer(grpcServer, auth.NewServer(
+		pool,
+		[]byte(cfg.JWT.Secret),
+		time.Duration(cfg.JWT.TTLMinutes)*time.Minute),
+	)
 	proto.RegisterHealthServer(grpcServer, health.NewServer(pool))
 	log.Printf("server listening at %v", listener.Addr())
 

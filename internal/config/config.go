@@ -16,6 +16,10 @@ type Config struct {
 		Name     string `yaml:"name"`
 		SSLMode  string `yaml:"ssl_mode"`
 	} `yaml:"database"`
+	JWT struct {
+		Secret     string `yaml:"secret"`
+		TTLMinutes int    `yaml:"ttl_minutes"`
+	} `yaml:"jwt"`
 }
 
 func LoadConfig(path string) (*Config, error) {
