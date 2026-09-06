@@ -1,3 +1,22 @@
-###
+### EmailExists
+GRPC localhost:5050/FL.v1.Auth/EmailExists
 
-GRPC localhost:5050/FL.v1.Health/HealthCheck
+{
+  "email": "petr@example.com"
+}
+
+### Register
+GRPC localhost:5050/FL.v1.Auth/Register
+
+{
+  "email": "petr@example.com",
+  "password": "SuperSecret123"
+}
+
+### Login
+GRPC localhost:5050/FL.v1.Auth/Login
+
+{
+  "email": "petr@example.com",
+  "password": "SuperSecret123"
+}

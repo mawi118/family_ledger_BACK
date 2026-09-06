@@ -14,12 +14,10 @@ type server struct {
 }
 
 func (s *server) HealthCheck(ctx context.Context, req *proto.HealthRequest) (*proto.HealthResponse, error) {
-	var code int32
-	err := s.db.QueryRow(ctx, "SELECT code FROM grpc_test_table LIMIT 1").Scan(&code)
-	if err != nil {
+	if err := s.db.Ping(ctx); err != nil {
 		return nil, err
 	}
-	return &proto.HealthResponse{Code: code}, nil
+	return &proto.HealthResponse{Code: 200}, nil
 }
 
 var _ proto.HealthServer = (*server)(nil)
