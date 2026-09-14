@@ -13,6 +13,7 @@ import (
 	"github.com/mawi118/family_ledger_BACK/internal/interceptor"
 	"github.com/mawi118/family_ledger_BACK/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -46,6 +47,9 @@ func main() {
 	)
 	proto.RegisterHealthServer(grpcServer, health.NewServer(pool))
 	log.Printf("server listening at %v", listener.Addr())
+
+	//настройка  reflection
+	reflection.Register(grpcServer)
 
 	//(след. строка будет блокирующей - grpcServer.Serve обрабатывает запросы)
 	if err := grpcServer.Serve(listener); err != nil {
