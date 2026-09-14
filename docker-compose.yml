@@ -15,7 +15,7 @@ services:
       interval: 2s
       timeout: 3s
       retries: 10
-      
+
   migrate:
     image: migrate/migrate:v4.19.1
     depends_on:
@@ -42,5 +42,5 @@ services:
       - ./config/config.yaml:/app/config/config.yaml:ro
     restart: unless-stopped
 
-  volumes:
+volumes:
   pgdata:
