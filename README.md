@@ -8,30 +8,35 @@
 
 ## Запуск
 
-1. Поднять Postgres:
 
-   docker compose up -d
+1. Поднять Postgres (база `family_ledger_full` создаётся автоматически при первом запуске контейнера):
+
+```bash
+docker compose up -d
+```
 
 2. Создать конфиг:
 
-   cp config/config.example.yaml config/config.yaml
+```bash
+cp config/config.example.yaml config/config.yaml
+```
 
-   В `config/config.yaml` задать свой `jwt.secret` (например: `openssl rand -hex 32`).
+В `config/config.yaml` задать свой `jwt.secret` (например: `openssl rand -hex 32`).
 
-3. Создать базу :
+3. Накатить миграции:
 
-   psql -h localhost -p 5433 -U family_ledger -d postgres -c "CREATE DATABASE family_ledger_full"
+```bash
+migrate -database "postgres://family_ledger:family_ledger@localhost:5433/family_ledger_full?sslmode=disable" \
+  -path migrations/prod up
+```
 
-4. Накатить миграции:
+4. Запустить сервер:
 
-   migrate -database "postgres://family_ledger:family_ledger@localhost:5433/family_ledger_full?sslmode=disable" \
-   -path migrations/prod up
+```bash
+go run ./cmd/family_ledger
+```
 
-5. Запустить сервер:
-
-   go run ./cmd/family_ledger
-
-   Сервер слушает gRPC на `localhost:5050`.
+Сервер слушает gRPC на `localhost:5050`.
 
 ## Тестовые запросы
 
@@ -39,5 +44,7 @@
 
 ## Сборка / проверка
 
+```bash
 go build ./...
 go vet ./...
+```

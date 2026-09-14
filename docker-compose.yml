@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: family_ledger
       POSTGRES_PASSWORD: family_ledger
-      POSTGRES_DB: family_ledger
+      POSTGRES_DB: family_ledger_full
     ports:
       - "5433:5432"
     volumes:
