@@ -1,0 +1,9 @@
+.git
+.idea
+.gitignore
+.gitattributes
+README.md
+DECISIONS.md
+requests.http
+config/config.yaml
+migrations

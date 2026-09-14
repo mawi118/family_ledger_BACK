@@ -10,6 +10,37 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U family_ledger -d family_ledger_full"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      
+  migrate:
+    image: migrate/migrate:v4.19.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations/prod:/migrations
+    command:
+      - "-path"
+      - "/migrations"
+      - "-database"
+      - "postgres://family_ledger:family_ledger@postgres:5432/family_ledger_full?sslmode=disable"
+      - "up"
+    restart: "no"
 
-volumes:
+  backend:
+    build: .
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./config/config.yaml:/app/config/config.yaml:ro
+    restart: unless-stopped
+
+  volumes:
   pgdata:

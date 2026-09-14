@@ -1,0 +1,12 @@
+database:
+  host: postgres
+  port: 5432
+  user: family_ledger
+  password: family_ledger
+  name: family_ledger_full
+  ssl_mode: disable
+
+jwt:
+  # Сгенерируй свой секрет, например: openssl rand -hex 32
+  secret: "REPLACE_ME_WITH_A_LONG_RANDOM_SECRET"
+  ttl_minutes: 60
