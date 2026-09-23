@@ -36,8 +36,8 @@ func (s *server) Register(ctx context.Context, req *proto.RegisterRequest) (*pro
 
 	var userID string
 	err = s.db.QueryRow(ctx,
-		"INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING user_id",
-		req.Email, hash).Scan(&userID)
+		"INSERT INTO users (email, password_hash, first_name) VALUES ($1, $2, $3) RETURNING user_id",
+		req.Email, hash, req.FirstName).Scan(&userID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
@@ -46,7 +46,19 @@ func (s *server) Register(ctx context.Context, req *proto.RegisterRequest) (*pro
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return &proto.RegisterResponse{UserId: userID}, nil
+	tok, err := token.Generate(userID, s.jwtSecret, s.jwtTTL)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	return &proto.RegisterResponse{
+		Token: tok,
+		User: &proto.User{
+			UserId:    userID,
+			Email:     req.Email,
+			FirstName: req.FirstName,
+		},
+	}, nil
 }
 
 func (s *server) EmailExists(ctx context.Context, req *proto.EmailExistsRequest) (*proto.EmailExistsResponse, error) {
@@ -59,11 +71,11 @@ func (s *server) EmailExists(ctx context.Context, req *proto.EmailExistsRequest)
 }
 
 func (s *server) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginResponse, error) {
-	var userID, hash string
+	var userID, hash, firstName string
 	err := s.db.QueryRow(ctx,
-		"SELECT user_id, password_hash FROM users WHERE email = $1",
+		"SELECT user_id, password_hash, COALESCE(first_name, '') FROM users WHERE email = $1",
 		req.Email,
-	).Scan(&userID, &hash)
+	).Scan(&userID, &hash, &firstName)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "invalid email or password")
 	}
@@ -81,7 +93,14 @@ func (s *server) Login(ctx context.Context, req *proto.LoginRequest) (*proto.Log
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return &proto.LoginResponse{Token: tok}, nil
+	return &proto.LoginResponse{
+		Token: tok,
+		User: &proto.User{
+			UserId:    userID,
+			Email:     req.Email,
+			FirstName: firstName,
+		},
+	}, nil
 }
 
 var _ proto.AuthServer = (*server)(nil)
