@@ -13,8 +13,9 @@ message LoginRequest{
   string password = 2;
 }
 message LoginResponse{
-  string token = 1;
+  string access_token = 1;
   User user = 2;
+  string refresh_token = 3;
 }
 
 message RegisterRequest  {
@@ -23,8 +24,9 @@ message RegisterRequest  {
   string first_name = 3;
 }
 message RegisterResponse {
-  string token = 1;
+  string access_token = 1;
   User user = 2;
+  string refresh_token = 3;
 }
 
 message EmailExistsRequest {
@@ -34,8 +36,25 @@ message EmailExistsResponse {
   bool exists = 1 ;
 }
 
+message RefreshRequest {
+  string refresh_token = 1;
+}
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+message LogoutResponse {
+  bool success = 1;
+}
+
 service Auth {
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc EmailExists (EmailExistsRequest) returns (EmailExistsResponse);
+  rpc Refresh (RefreshRequest) returns (RefreshResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
 }

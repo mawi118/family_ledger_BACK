@@ -43,7 +43,8 @@ func main() {
 	proto.RegisterAuthServer(grpcServer, auth.NewServer(
 		pool,
 		[]byte(cfg.JWT.Secret),
-		time.Duration(cfg.JWT.TTLMinutes)*time.Minute),
+		time.Duration(cfg.JWT.AccessTTLMinutes)*time.Minute,
+		time.Duration(cfg.JWT.RefreshTTLDays)*24*time.Hour),
 	)
 	proto.RegisterHealthServer(grpcServer, health.NewServer(pool))
 	log.Printf("server listening at %v", listener.Addr())

@@ -14,18 +14,36 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// код ошибки Postgres "unique_violation" (нарушение UNIQUE constraint)
 const pgUniqueViolation = "23505"
 
 type server struct {
-	db        *pgxpool.Pool
-	jwtSecret []byte
-	jwtTTL    time.Duration
+	db         *pgxpool.Pool
+	jwtSecret  []byte
+	accessTTL  time.Duration
+	refreshTTL time.Duration
 	proto.UnimplementedAuthServer
 }
 
-func NewServer(pool *pgxpool.Pool, jwtSecret []byte, jwtTTL time.Duration) proto.AuthServer {
-	return &server{db: pool, jwtSecret: jwtSecret, jwtTTL: jwtTTL}
+func NewServer(pool *pgxpool.Pool, jwtSecret []byte, accessTTL, refreshTTL time.Duration) proto.AuthServer {
+	return &server{db: pool, jwtSecret: jwtSecret, accessTTL: accessTTL, refreshTTL: refreshTTL}
+}
+
+func (s *server) issueTokens(ctx context.Context, userID string) (access, refresh string, err error) {
+	access, err = token.GenerateAccess(userID, s.jwtSecret, s.accessTTL)
+	if err != nil {
+		return "", "", err
+	}
+	raw, hash, err := token.GenerateRefresh()
+	if err != nil {
+		return "", "", err
+	}
+	_, err = s.db.Exec(ctx,
+		`INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+		userID, hash, time.Now().Add(s.refreshTTL))
+	if err != nil {
+		return "", "", err
+	}
+	return access, raw, nil
 }
 
 func (s *server) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.RegisterResponse, error) {
@@ -46,13 +64,14 @@ func (s *server) Register(ctx context.Context, req *proto.RegisterRequest) (*pro
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	tok, err := token.Generate(userID, s.jwtSecret, s.jwtTTL)
+	accessTok, refreshTok, err := s.issueTokens(ctx, userID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &proto.RegisterResponse{
-		Token: tok,
+		AccessToken:  accessTok,
+		RefreshToken: refreshTok,
 		User: &proto.User{
 			UserId:    userID,
 			Email:     req.Email,
@@ -88,19 +107,61 @@ func (s *server) Login(ctx context.Context, req *proto.LoginRequest) (*proto.Log
 		return nil, status.Error(codes.Unauthenticated, "invalid email or password")
 	}
 
-	tok, err := token.Generate(userID, s.jwtSecret, s.jwtTTL)
+	accessTok, refreshTok, err := s.issueTokens(ctx, userID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &proto.LoginResponse{
-		Token: tok,
+		AccessToken:  accessTok,
+		RefreshToken: refreshTok,
 		User: &proto.User{
 			UserId:    userID,
 			Email:     req.Email,
 			FirstName: firstName,
 		},
 	}, nil
+}
+
+func (s *server) Refresh(ctx context.Context, req *proto.RefreshRequest) (*proto.RefreshResponse, error) {
+	hash := token.HashRefresh(req.RefreshToken)
+
+	var userID string
+	var expiresAt time.Time
+	var revokedAt *time.Time
+	err := s.db.QueryRow(ctx,
+		`SELECT user_id, expires_at, revoked_at FROM refresh_tokens WHERE token_hash = $1`,
+		hash,
+	).Scan(&userID, &expiresAt, &revokedAt)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
+	}
+	if revokedAt != nil || time.Now().After(expiresAt) {
+		return nil, status.Error(codes.Unauthenticated, "refresh token expired or revoked")
+	}
+
+	// ротация: старый refresh гасим, выдаём новую пару
+	if _, err := s.db.Exec(ctx,
+		`UPDATE refresh_tokens SET revoked_at = now() WHERE token_hash = $1`, hash); err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	accessTok, refreshTok, err := s.issueTokens(ctx, userID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	return &proto.RefreshResponse{AccessToken: accessTok, RefreshToken: refreshTok}, nil
+}
+
+func (s *server) Logout(ctx context.Context, req *proto.LogoutRequest) (*proto.LogoutResponse, error) {
+	hash := token.HashRefresh(req.RefreshToken)
+	_, err := s.db.Exec(ctx,
+		`UPDATE refresh_tokens SET revoked_at = now() WHERE token_hash = $1 AND revoked_at IS NULL`, hash)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	return &proto.LogoutResponse{Success: true}, nil
 }
 
 var _ proto.AuthServer = (*server)(nil)

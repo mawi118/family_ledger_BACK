@@ -133,3 +133,16 @@ func (r *LoginRequest) Validate() error {
 	}
 	return nil
 }
+func (r *RefreshRequest) Validate() error {
+	if r.RefreshToken == "" {
+		return errors.New("refresh_token is required")
+	}
+	return nil
+}
+
+func (r *LogoutRequest) Validate() error {
+	if r.RefreshToken == "" {
+		return errors.New("refresh_token is required")
+	}
+	return nil
+}

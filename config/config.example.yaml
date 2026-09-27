@@ -7,6 +7,6 @@ database:
   ssl_mode: disable
 
 jwt:
-  # Сгенерируй свой секрет, например: openssl rand -hex 32
   secret: "REPLACE_ME_WITH_A_LONG_RANDOM_SECRET"
-  ttl_minutes: 60
+  access_ttl_minutes: 15
+  refresh_ttl_days: 30

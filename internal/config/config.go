@@ -17,8 +17,9 @@ type Config struct {
 		SSLMode  string `yaml:"ssl_mode"`
 	} `yaml:"database"`
 	JWT struct {
-		Secret     string `yaml:"secret"`
-		TTLMinutes int    `yaml:"ttl_minutes"`
+		Secret           string `yaml:"secret"`
+		AccessTTLMinutes int    `yaml:"access_ttl_minutes"`
+		RefreshTTLDays   int    `yaml:"refresh_ttl_days"`
 	} `yaml:"jwt"`
 }
 
