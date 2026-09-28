@@ -51,10 +51,18 @@ message LogoutResponse {
   bool success = 1;
 }
 
+message MeRequest {
+  string access_token = 1;
+}
+message MeResponse {
+  User user = 1;
+}
 service Auth {
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc EmailExists (EmailExistsRequest) returns (EmailExistsResponse);
   rpc Refresh (RefreshRequest) returns (RefreshResponse);
   rpc Logout (LogoutRequest) returns (LogoutResponse);
+  rpc Me (MeRequest) returns (MeResponse);
+
 }

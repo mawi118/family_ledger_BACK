@@ -125,3 +125,30 @@ func TestRegisterLoginRefreshLogout(t *testing.T) {
 		t.Fatalf("ожидали, что отозванный refresh отклонят, получили %v", err)
 	}
 }
+
+func TestMe(t *testing.T) {
+	client := setupServer(t)
+	ctx := context.Background()
+
+	regResp, err := client.Register(ctx, &proto.RegisterRequest{
+		Email:     "test-me@example.com",
+		Password:  "Testpass123!",
+		FirstName: "Тест",
+	})
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	meResp, err := client.Me(ctx, &proto.MeRequest{AccessToken: regResp.AccessToken})
+	if err != nil {
+		t.Fatalf("me: %v", err)
+	}
+	if meResp.User.Email != "test-me@example.com" || meResp.User.FirstName != "Тест" {
+		t.Fatalf("неожиданные данные пользователя: %+v", meResp.User)
+	}
+
+	_, err = client.Me(ctx, &proto.MeRequest{AccessToken: "garbage-token"})
+	if status.Code(err) != codes.Unauthenticated {
+		t.Fatalf("ожидали Unauthenticated на мусорный токен, получили %v", err)
+	}
+}

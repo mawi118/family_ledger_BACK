@@ -585,6 +585,94 @@ func (x *LogoutResponse) GetSuccess() bool {
 	return false
 }
 
+type MeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MeRequest) Reset() {
+	*x = MeRequest{}
+	mi := &file_proto_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MeRequest) ProtoMessage() {}
+
+func (x *MeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MeRequest.ProtoReflect.Descriptor instead.
+func (*MeRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *MeRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+type MeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MeResponse) Reset() {
+	*x = MeResponse{}
+	mi := &file_proto_auth_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MeResponse) ProtoMessage() {}
+
+func (x *MeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MeResponse.ProtoReflect.Descriptor instead.
+func (*MeResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *MeResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 var File_proto_auth_proto protoreflect.FileDescriptor
 
 const file_proto_auth_proto_rawDesc = "" +
@@ -623,13 +711,19 @@ const file_proto_auth_proto_rawDesc = "" +
 	"\rLogoutRequest\x12#\n" +
 	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"*\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xae\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\".\n" +
+	"\tMeRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"-\n" +
+	"\n" +
+	"MeResponse\x12\x1f\n" +
+	"\x04user\x18\x01 \x01(\v2\v.FL.v1.UserR\x04user2\xd9\x02\n" +
 	"\x04Auth\x122\n" +
 	"\x05Login\x12\x13.FL.v1.LoginRequest\x1a\x14.FL.v1.LoginResponse\x12;\n" +
 	"\bRegister\x12\x16.FL.v1.RegisterRequest\x1a\x17.FL.v1.RegisterResponse\x12D\n" +
 	"\vEmailExists\x12\x19.FL.v1.EmailExistsRequest\x1a\x1a.FL.v1.EmailExistsResponse\x128\n" +
 	"\aRefresh\x12\x15.FL.v1.RefreshRequest\x1a\x16.FL.v1.RefreshResponse\x125\n" +
-	"\x06Logout\x12\x14.FL.v1.LogoutRequest\x1a\x15.FL.v1.LogoutResponseB-Z+github.com/mawi118/family_ledger_BACK/protob\x06proto3"
+	"\x06Logout\x12\x14.FL.v1.LogoutRequest\x1a\x15.FL.v1.LogoutResponse\x12)\n" +
+	"\x02Me\x12\x10.FL.v1.MeRequest\x1a\x11.FL.v1.MeResponseB-Z+github.com/mawi118/family_ledger_BACK/protob\x06proto3"
 
 var (
 	file_proto_auth_proto_rawDescOnce sync.Once
@@ -643,7 +737,7 @@ func file_proto_auth_proto_rawDescGZIP() []byte {
 	return file_proto_auth_proto_rawDescData
 }
 
-var file_proto_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_auth_proto_goTypes = []any{
 	(*User)(nil),                // 0: FL.v1.User
 	(*LoginRequest)(nil),        // 1: FL.v1.LoginRequest
@@ -656,25 +750,30 @@ var file_proto_auth_proto_goTypes = []any{
 	(*RefreshResponse)(nil),     // 8: FL.v1.RefreshResponse
 	(*LogoutRequest)(nil),       // 9: FL.v1.LogoutRequest
 	(*LogoutResponse)(nil),      // 10: FL.v1.LogoutResponse
+	(*MeRequest)(nil),           // 11: FL.v1.MeRequest
+	(*MeResponse)(nil),          // 12: FL.v1.MeResponse
 }
 var file_proto_auth_proto_depIdxs = []int32{
 	0,  // 0: FL.v1.LoginResponse.user:type_name -> FL.v1.User
 	0,  // 1: FL.v1.RegisterResponse.user:type_name -> FL.v1.User
-	1,  // 2: FL.v1.Auth.Login:input_type -> FL.v1.LoginRequest
-	3,  // 3: FL.v1.Auth.Register:input_type -> FL.v1.RegisterRequest
-	5,  // 4: FL.v1.Auth.EmailExists:input_type -> FL.v1.EmailExistsRequest
-	7,  // 5: FL.v1.Auth.Refresh:input_type -> FL.v1.RefreshRequest
-	9,  // 6: FL.v1.Auth.Logout:input_type -> FL.v1.LogoutRequest
-	2,  // 7: FL.v1.Auth.Login:output_type -> FL.v1.LoginResponse
-	4,  // 8: FL.v1.Auth.Register:output_type -> FL.v1.RegisterResponse
-	6,  // 9: FL.v1.Auth.EmailExists:output_type -> FL.v1.EmailExistsResponse
-	8,  // 10: FL.v1.Auth.Refresh:output_type -> FL.v1.RefreshResponse
-	10, // 11: FL.v1.Auth.Logout:output_type -> FL.v1.LogoutResponse
-	7,  // [7:12] is the sub-list for method output_type
-	2,  // [2:7] is the sub-list for method input_type
-	2,  // [2:2] is the sub-list for extension type_name
-	2,  // [2:2] is the sub-list for extension extendee
-	0,  // [0:2] is the sub-list for field type_name
+	0,  // 2: FL.v1.MeResponse.user:type_name -> FL.v1.User
+	1,  // 3: FL.v1.Auth.Login:input_type -> FL.v1.LoginRequest
+	3,  // 4: FL.v1.Auth.Register:input_type -> FL.v1.RegisterRequest
+	5,  // 5: FL.v1.Auth.EmailExists:input_type -> FL.v1.EmailExistsRequest
+	7,  // 6: FL.v1.Auth.Refresh:input_type -> FL.v1.RefreshRequest
+	9,  // 7: FL.v1.Auth.Logout:input_type -> FL.v1.LogoutRequest
+	11, // 8: FL.v1.Auth.Me:input_type -> FL.v1.MeRequest
+	2,  // 9: FL.v1.Auth.Login:output_type -> FL.v1.LoginResponse
+	4,  // 10: FL.v1.Auth.Register:output_type -> FL.v1.RegisterResponse
+	6,  // 11: FL.v1.Auth.EmailExists:output_type -> FL.v1.EmailExistsResponse
+	8,  // 12: FL.v1.Auth.Refresh:output_type -> FL.v1.RefreshResponse
+	10, // 13: FL.v1.Auth.Logout:output_type -> FL.v1.LogoutResponse
+	12, // 14: FL.v1.Auth.Me:output_type -> FL.v1.MeResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_auth_proto_init() }
@@ -688,7 +787,7 @@ func file_proto_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_proto_rawDesc), len(file_proto_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

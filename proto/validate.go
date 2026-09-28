@@ -146,3 +146,10 @@ func (r *LogoutRequest) Validate() error {
 	}
 	return nil
 }
+
+func (r *MeRequest) Validate() error {
+	if r.AccessToken == "" {
+		return errors.New("access_token is required")
+	}
+	return nil
+}

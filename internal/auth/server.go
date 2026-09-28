@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mawi118/family_ledger_BACK/internal/token"
@@ -162,6 +163,33 @@ func (s *server) Logout(ctx context.Context, req *proto.LogoutRequest) (*proto.L
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &proto.LogoutResponse{Success: true}, nil
+}
+
+func (s *server) Me(ctx context.Context, req *proto.MeRequest) (*proto.MeResponse, error) {
+	claims := &jwt.RegisteredClaims{}
+	tok, err := jwt.ParseWithClaims(req.AccessToken, claims, func(t *jwt.Token) (interface{}, error) {
+		return s.jwtSecret, nil
+	})
+	if err != nil || !tok.Valid {
+		return nil, status.Error(codes.Unauthenticated, "invalid or expired access token")
+	}
+
+	var email, firstName string
+	err = s.db.QueryRow(ctx,
+		"SELECT email, COALESCE(first_name, '') FROM users WHERE user_id = $1",
+		claims.Subject,
+	).Scan(&email, &firstName)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "user not found")
+	}
+
+	return &proto.MeResponse{
+		User: &proto.User{
+			UserId:    claims.Subject,
+			Email:     email,
+			FirstName: firstName,
+		},
+	}, nil
 }
 
 var _ proto.AuthServer = (*server)(nil)
