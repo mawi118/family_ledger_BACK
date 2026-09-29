@@ -10,7 +10,7 @@
 cp config/config.docker.example.yaml config/config.yaml
 ```
 
-В `config/config.yaml` задать свой `jwt.secret` (например: `openssl rand -hex 32`).
+В `config/config.yaml` задать свой `jwt.secret` (например: `openssl rand -hex 32`). Значения `access_ttl_minutes` (15) и `refresh_ttl_days` (30) можно оставить по умолчанию.
 
 2. Собрать и поднять всё сразу (Postgres, миграции, сервер):
 
@@ -65,9 +65,34 @@ go run ./cmd/family_ledger
 
 Сервер слушает gRPC на `localhost:5050`.
 
+## Аутентификация
+
+Схема токенов — access + refresh, без единого stateful-сеанса:
+
+- **Access-токен** — короткоживущий (`jwt.access_ttl_minutes`, по умолчанию 15 минут) подписанный JWT. Проверяется только по подписи и `exp`, без обращения к базе — поэтому он остаётся действителен до истечения TTL даже после `Logout`.
+- **Refresh-токен** — непрозрачный случайный токен (не JWT) с TTL `jwt.refresh_ttl_days` (по умолчанию 30 дней). В базе хранится только его SHA-256 хеш (таблица `refresh_tokens`), сам токен нигде не сохраняется.
+- **Ротация**: каждый вызов `Refresh` ревокает старый refresh-токен и выдаёт новую пару access+refresh. Повторное использование уже отревоканного refresh-токена отклоняется — это и есть механизм обнаружения кражи токена.
+- **Logout** — реальная ревокация: `revoked_at` выставляется в базе по хешу refresh-токена. Access-токен при этом не инвалидируется (см. выше — он просто доживает свой TTL).
+- **Me** — отдаёт `{id, email, firstName}` по access-токену. Данные всегда читаются свежими из таблицы `users` (не из claims JWT), чтобы не отдавать устаревшую информацию.
+
+Сервис `Auth` (см. `proto/auth.proto`): `Register`, `Login`, `EmailExists`, `Refresh`, `Logout`, `Me`.
+
 ## Тестовые запросы
 
-См. `requests.http`.
+Базовые ручные запросы (`EmailExists`/`Register`/`Login`) — см. `requests.http`.
+
+Полный жизненный цикл (включая `Refresh`/`Logout`/`Me`, ротацию и ревокацию) покрыт интеграционными тестами — см. следующий раздел.
+
+## Тесты
+
+Интеграционные тесты (`internal/auth/server_test.go`) поднимают gRPC-сервер in-process (`bufconn`) и требуют реальный Postgres:
+
+```bash
+export TEST_DATABASE_URL="postgres://family_ledger:family_ledger@localhost:5433/family_ledger_full?sslmode=disable"
+go test ./... -v
+```
+
+Перед первым запуском накатите миграции на эту базу (см. шаг 3 в "Локальная разработка").
 
 ## Сборка / проверка
 
@@ -75,3 +100,8 @@ go run ./cmd/family_ledger
 go build ./...
 go vet ./...
 ```
+
+## CI/CD
+
+- **Тесты** (`.github/workflows/test.yml`) — запускаются на каждый PR и push в `main` (поднимают Postgres как service-контейнер, накатывают миграции, гоняют `go test ./...`).
+- **Деплой** (`.github/workflows/deploy.yml`) — на каждый push в `main` собирает образ, пушит его в `ghcr.io/mawi118/family_ledger_back` (тегами `latest` и `<sha>`) и деплоит на VPS по SSH (ключ в GitHub Actions ограничен так, что может выполнить только фиксированный `deploy.sh` на сервере — ничего больше).
