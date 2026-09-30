@@ -9,4 +9,4 @@ database:
 jwt:
   secret: "REPLACE_ME_WITH_A_LONG_RANDOM_SECRET"
   access_ttl_minutes: 15
-  refresh_ttl_days: 30
+  refresh_ttl_days: 7
