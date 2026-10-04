@@ -89,7 +89,7 @@ go run ./cmd/family_ledger
 
 ```bash
 export TEST_DATABASE_URL="postgres://family_ledger:family_ledger@localhost:5433/family_ledger_full?sslmode=disable"
-go test ./... -v
+go test ./... -v -p 1
 ```
 
 Перед первым запуском накатите миграции на эту базу (см. шаг 3 в "Локальная разработка").

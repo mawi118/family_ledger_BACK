@@ -9,6 +9,7 @@ import (
 	"github.com/mawi118/family_ledger_BACK/internal/auth"
 	"github.com/mawi118/family_ledger_BACK/internal/config"
 	"github.com/mawi118/family_ledger_BACK/internal/db"
+	"github.com/mawi118/family_ledger_BACK/internal/group"
 	"github.com/mawi118/family_ledger_BACK/internal/health"
 	"github.com/mawi118/family_ledger_BACK/internal/interceptor"
 	"github.com/mawi118/family_ledger_BACK/proto"
@@ -37,7 +38,10 @@ func main() {
 	}
 
 	//создали сервер gRPC
-	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptor.ValidationInterceptor))
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		interceptor.NewAuthInterceptor(pool, []byte(cfg.JWT.Secret)), // сначала авторизация, потом валидация
+		interceptor.ValidationInterceptor,
+	))
 
 	//ниже регестрируются сервера
 	proto.RegisterAuthServer(grpcServer, auth.NewServer(
@@ -46,6 +50,7 @@ func main() {
 		time.Duration(cfg.JWT.AccessTTLMinutes)*time.Minute,
 		time.Duration(cfg.JWT.RefreshTTLDays)*24*time.Hour),
 	)
+	proto.RegisterGroupsServer(grpcServer, group.NewServer(pool))
 	proto.RegisterHealthServer(grpcServer, health.NewServer(pool))
 	log.Printf("server listening at %v", listener.Addr())
 
