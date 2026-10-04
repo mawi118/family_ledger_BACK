@@ -1,0 +1,79 @@
+syntax = "proto3";
+package FL.v1;
+option go_package = "github.com/mawi118/family_ledger_BACK/proto";
+
+// Идентификатор текущего пользователя во всех методах берётся из access-токена
+// (заголовок gRPC-метаданных authorization: Bearer <access>), а не из тела запроса.
+service Groups {
+  rpc CreateGroup(CreateGroupRequest) returns (Group);
+  rpc ListMyGroups(ListMyGroupsRequest) returns (ListMyGroupsResponse);
+  rpc GetGroup(GroupIdRequest) returns (Group);
+  rpc RenameGroup(RenameGroupRequest) returns (RenameGroupResponse);
+  rpc ListMembers(GroupIdRequest) returns (ListMembersResponse);
+  rpc GetMyIncome(GroupIdRequest) returns (IncomeResponse);
+  rpc SetMyIncome(SetMyIncomeRequest) returns (IncomeResponse);
+  rpc CreateInvite(GroupIdRequest) returns (InviteResponse);
+  rpc AcceptInvite(AcceptInviteRequest) returns (AcceptInviteResponse);
+}
+
+message Group {
+  string group_id = 1;
+  string name = 2;
+  string creator_id = 3;
+}
+
+message GroupIdRequest {
+  string group_id = 1;
+}
+
+// name необязателен: если пуст, сервер назовёт группу "Группа {X+1}",
+// где X — число групп, в которых уже состоит пользователь.
+message CreateGroupRequest {
+  string name = 1;
+}
+
+message ListMyGroupsRequest {}
+message ListMyGroupsResponse {
+  repeated Group groups = 1;
+}
+
+message RenameGroupRequest {
+  string group_id = 1;
+  string name = 2;
+}
+message RenameGroupResponse {
+  string name = 1;
+}
+
+message Member {
+  string user_id = 1;
+  string first_name = 2;
+  string last_name = 3;    // пустая строка, если не задана
+  string middle_name = 4;  // пустая строка, если не задано
+  string joined_at = 5;    // RFC 3339, UTC
+  int64 income = 6;        // в копейках
+  string role = 7;         // owner | member
+}
+message ListMembersResponse {
+  repeated Member members = 1;
+}
+
+message SetMyIncomeRequest {
+  string group_id = 1;
+  int64 income = 2;        // в копейках, >= 0
+}
+message IncomeResponse {
+  int64 income = 1;
+}
+
+message InviteResponse {
+  string code = 1;         // 4 цифры
+  string expires_at = 2;   // RFC 3339, UTC
+}
+
+message AcceptInviteRequest {
+  string code = 1;
+}
+message AcceptInviteResponse {
+  string group_id = 1;
+}
